@@ -201,6 +201,7 @@ static int demosaic_to_thumbnail(
  *    int width, height   - image size
  *    int cfa_pattern[4]  - array of CFA_* constants to encode the colors
  *                          of the 4 subpixels within a Bayer unit
+ *    float color_matrix[9] - XYZ to cam RGB (or NULL to use default matrix)                       
  *    uint8_t black_level - smallest and largest possible pixel values
  *    uint8_t white_level
  *    char *make, *model  - camera make and model
@@ -223,6 +224,7 @@ int write_dng_cfa8_to_memory(
 	const uint8_t *bayer,
 	int width, int height,
 	const uint8_t cfa_pattern[4],
+	const float color_matrix[9],
 	uint8_t black_level, uint8_t white_level,
 	const char *make, const char *model, const char *unique_model,
 	int thumb_shift,
@@ -244,7 +246,7 @@ int write_dng_cfa8_to_memory(
 	 */
 	static const uint16_t BlackLevelRepeatDim[2] = { 1, 1 };
 	// Simple XYZ to sRGB matrix
-	static const float    ColorMatrix[9] = {
+	static const float    DefaultColorMatrix[9] = {
 		3.1338561f, -1.6168667f, -0.4906146f,
 		-.9787684f,  1.9161415f,  0.0334540f,
 		0.0719453f, -0.2289914f,  1.4052427f,
@@ -257,6 +259,8 @@ int write_dng_cfa8_to_memory(
 
 	if (thumb_shift < 1)
 		thumb_shift = 1;
+	if (!color_matrix)
+		color_matrix = DefaultColorMatrix;
 
 	tif = TIFFClientOpen(
 		"mem.dng", "w",
@@ -290,7 +294,7 @@ int write_dng_cfa8_to_memory(
 	TIFFSetField(tif, TIFFTAG_COMPRESSION, COMPRESSION_NONE);
 	TIFFSetField(tif, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_RGB);
 	TIFFSetField(tif, TIFFTAG_BASELINEEXPOSURE, BaselineExposure);
-	TIFFSetField(tif, TIFFTAG_COLORMATRIX1, 9, ColorMatrix);
+	TIFFSetField(tif, TIFFTAG_COLORMATRIX1, 9, color_matrix);
 	TIFFSetField(tif, TIFFTAG_ASSHOTNEUTRAL, 3, AsShotNeutral);
 	TIFFSetField(tif, TIFFTAG_CALIBRATIONILLUMINANT1, 21); // D65
 	TIFFSetField(tif, TIFFTAG_MAKE, make);

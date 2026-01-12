@@ -32,6 +32,7 @@ int write_dng_cfa8_to_memory(
     const uint8_t *bayer,
     int width, int height,
     const uint8_t cfa_pattern[4],
+    const float color_matrix[9],
     uint8_t black_level, uint8_t white_level,
     const char *make, const char *model, const char *unique_model,
     int thumb_shift,

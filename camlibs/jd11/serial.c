@@ -556,7 +556,16 @@ jd11_get_image_full(Camera *camera, CameraFile*file, int nr, int raw, GPContext 
 		const char *unique_model = gp_camera_get_abilities(camera, &a) == GP_OK ? a.model : NULL;
 		uint8_t *dng_buf = NULL;
 		size_t dng_size = 0;
-			
+		
+		/* Measured for DigiPix AXIS. We'll assume this will be a good starting
+		 * point, if not identical, for other JD11 cameras
+		 */
+		static const float ColorMatrix[9] = {
+			 1.1275f, 0.0456f, -0.1611f,
+			-0.9533f, 2.0121f, -0.2116f,
+			-0.2450f, 0.4468f,  0.6482f
+		};
+		
 		if (!write_dng_cfa8_to_memory(
 			bayerpre,
 			640, 480,
@@ -564,6 +573,7 @@ jd11_get_image_full(Camera *camera, CameraFile*file, int nr, int raw, GPContext 
 				CFA_G, CFA_B,
 				CFA_R, CFA_G
 			},
+			ColorMatrix,
 			0, low_quality ? 252 : 255,
 			"Minton", "JD11", unique_model,
 			2,
